@@ -1,0 +1,5 @@
+Install:
+1. npm install
+2. edit settings in config/settings
+3. npm start
+4. test delayed sending with test/post_event.rb

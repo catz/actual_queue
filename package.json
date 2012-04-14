@@ -1,0 +1,30 @@
+{
+  "name": "active_queue",
+  "version": "0.0.1",
+  "description": "Actual queue",
+  "keywords": [
+    "redis",
+    "job",
+    "queue",
+    "delayed",
+    "nodejs"
+  ],
+  "author": [
+    "Roman Truschev <truschev@gmail.com>"
+  ],
+  "contributors": [
+    "Karavashkin Andrey <akaravashkin@swdrom.com>"
+  ],
+  "scripts": {
+    "start": "node active_queue_cluster.js"
+  },
+  "engines": {
+    "node": ">= 0.6.0 < 0.7.0"
+  },
+  "dependencies": {
+    "redis": "~0.7.1",
+    "hiredis": "~0.1.14",
+    "express": "~2.5.9",
+    "log": "~1.3.0"
+  }
+}
