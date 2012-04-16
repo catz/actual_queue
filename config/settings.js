@@ -5,3 +5,4 @@ exports.EVENT_QUEUE_TTL = 60 * 60; // 1 hour
 exports.USER_POLL_THRESHOLD = 60 * 60; // 30 min;
 exports.PS_TITLE = "actual_queue";
 exports.PORT = 8000;
+exports.PORT_UI = 8888;

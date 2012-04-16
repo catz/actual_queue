@@ -19,11 +19,15 @@ var stat = {
 function startMaster() {
   var workers = [];
 
+  var appUI = require('./server').ui;
+  appUI.listen(settings.PORT_UI);
+
   process.nextTick(function() {
     var s = new Sender();
     var w = new Worker(s, {pack: 100});
+    w.restore();
     w.fetch();
-  })  
+  });  
 
   function addWorker() {
     var worker = cluster.fork();
@@ -110,7 +114,7 @@ function startWorker() {
     var s = new Sender();
     var w = new Worker(s, {pack: 100});
     w.process();
-  })
+  });
   
   process.on('uncaughtException', function (err) {
     console.log("exception: " + err);

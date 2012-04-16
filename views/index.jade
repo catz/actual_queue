@@ -1,0 +1,16 @@
+h3 #{title}
+
+script
+  $(function(){
+    init();
+  });
+
+#stats
+  != partial('common_stats')
+  
+#types
+  div types last 7 days:
+  table#tabDays
+
+  div types last 24 hours:
+  table#tabHours  
