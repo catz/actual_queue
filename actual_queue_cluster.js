@@ -7,7 +7,8 @@ var http = require('http');
 var numCPUs = require('os').cpus().length;
 var Worker = require('./workers/core_worker');
 var Sender = require('./url_sender');
-var settings = require('./config/settings');
+var settings = require('./config/settings'),
+    logger = require('./logger');;
 
 var stat = {
   requestReceived: 0,
@@ -32,7 +33,8 @@ function startMaster() {
   function addWorker() {
     var worker = cluster.fork();
     workers.push(worker);
-    console.log('worker ' + worker.pid + ' started');
+    logger.info('env: ' + process.env.APP_ENV);
+    logger.info('worker ' + worker.pid + ' started');
 
     worker.on('message', function(msg) {
       if (msg.cmd) {
@@ -47,7 +49,7 @@ function startMaster() {
             stat.requestSentError++;
             break;  
           default:  
-            console.log("Unprocessed notify: " + msg.cmd);
+            logger.error("Unprocessed notify: " + msg.cmd);
         }
       }
     });
@@ -56,7 +58,7 @@ function startMaster() {
 
   function addREPL() {    
     net.createServer(function (socket) {
-      console.log('repl started on port' + socket.port);
+      logger.info('repl started on port' + socket.port);
       stat.replConnections += 1;
       var r = repl.start("node via TCP socket> ", socket);
       r.context.stat = stat;
@@ -71,7 +73,7 @@ function startMaster() {
   addREPL();
 
   cluster.on('death', function(worker) {
-    console.log('worker ' + worker.pid + ' died');
+    logger.info('worker ' + worker.pid + ' died');
     var idx = workers.indexOf(worker);;
 
     if (idx >= 0) {
@@ -83,24 +85,30 @@ function startMaster() {
 
   // Setting process.title currently only works on Linux, FreeBSD and Windows.
   process.title = settings.PS_TITLE;
-  console.log( process.title + " started with pid " + process.pid);
+  logger.info(process.title + " started with pid " + process.pid);
 
   setInterval(function() {
-    settings.redis.hmget(settings.REDIS_PREFIX + "-stats", "events_received",
-     "events_processed", "events_sent_error", function(err, reply) {
+    settings.redis.hmget(settings.REDIS_PREFIX + "-stats", "events_received", "online_events_received",
+     "events_processed", "events_sent_error", "event-recheck-sent", "event-recheck-sent-error", function(err, reply) {
         stat.requestReceived = reply[0] || 0;
-        stat.requestSent = reply[1] || 0;
-        stat.requestSentError = reply[2] || 0;
+        stat.requestReceivedOnline = reply[1] || 0;
+        stat.requestSent = reply[2] || 0;
+        stat.requestSentError = reply[3] || 0;
+        stat.requestRecheckSent = reply[4] || 0;
+        stat.requestRecheckSentError = reply[5] || 0;
 
-        console.log("requestReceived: " + stat.requestReceived +
+        logger.debug("requestReceived: " + stat.requestReceived +
+          " requestReceivedOnline: " + stat.requestReceivedOnline +
           " requestSent: " + stat.requestSent +
           " requestSentError: "+ stat.requestSentError +
+          " requestRecheckSent: "+ stat.requestRecheckSent +
+          " requestRecheckSentError: "+ stat.requestRecheckSentError +
           " workers: " + workers.length);
     });
   }, 2000);
 
   process.on('uncaughtException', function (err) {
-    console.log("exception: " + err);
+    logger.error("exception: " + err.stack);
   });  
 }  
 
@@ -117,7 +125,7 @@ function startWorker() {
   });
   
   process.on('uncaughtException', function (err) {
-    console.log("exception: " + err);
+    logger.error("exception: " + err.stack);
   });
 }
 

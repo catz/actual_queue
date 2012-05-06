@@ -9,7 +9,7 @@ function init() {
   setInterval(function() {
     daysTab.show(); 
     hoursTab.show();
-  }, 5000);
+  }, 2000);
 }
 
 function getStatsCommon() {
@@ -28,8 +28,11 @@ function refreshStats(data) {
   if (!data)
     return;
   $('#received').text(data.received);
+  $('#online_received').text(data.online_received);
   $('#sent').text(data.sent);
   $('#errors').text(data.errors);
+  $('#recheck_sent').text(data.recheck_sent);
+  $('#recheck_errors').text(data.recheck_errors);
 }
 
 function TypeTable(type) {
@@ -79,14 +82,14 @@ TypeTable.prototype.redraw = function(data) {
     
     switch (this.type) {
       case 0:
-        $(this.tableId + ' tbody tr:nth-child(1) th:nth-child('+i+')').text(adjDay.getDate() + 
-        '.' + (adjDay.getMonth().length==2?adjDay.getMonth():'0'+adjDay.getMonth()) );
+        $(this.tableId + ' tbody tr:nth-child(1) th:nth-child('+i+')').text(to2Digit(adjDay.getDate()) + 
+        '.' + to2Digit(adjDay.getMonth()+1) );
 
         arrMil.push(adjDay.getTime());
         adjDay.setDate(adjDay.getDate()+1);
         break;
       case 1:
-        $(this.tableId + ' tbody tr:nth-child(1) th:nth-child('+i+')').text(adjHour.getHours() + 
+        $(this.tableId + ' tbody tr:nth-child(1) th:nth-child('+i+')').text(to2Digit(adjHour.getHours()) + 
         ':' + '00');
 
         arrMil.push(adjHour.getTime());
@@ -103,10 +106,15 @@ TypeTable.prototype.redraw = function(data) {
       var tdPos = arrMil.indexOf(Number(time));
 
       if (tdPos != -1) {
-        $(this.tableId + ' tbody tr:nth-child('+ (count+1) +') td:nth-child(' + (tdPos+2) + ')').text(data[type][time]);
+        $(this.tableId + ' tbody tr:nth-child('+ (count+1) +') td:nth-child(' + (tdPos+2) + ')').text(data[type][time]['received'] + "/" + (data[type][time]['sent'] || 0));
       }  
     }      
     count++;
+  }
+
+  function to2Digit(s) {
+    s = String(s);
+    return (s.length==2?s:'0'+s)
   }
 }
 

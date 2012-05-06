@@ -22,9 +22,13 @@ appUI.configure(function(){
 });
 
 var event_tracker = require('./workers/event_tracker');
+var online_event_tracker = require('./workers/online_event_tracker');
 
 app.get('/send_delayed', event_tracker);
 app.post('/send_delayed', event_tracker);
+
+app.get('/user_online', online_event_tracker);
+app.post('/user_online', online_event_tracker);
 
 app.get('/health', function(req, res) {
   // console.log('health received');
@@ -40,3 +44,16 @@ appUI.get('/', routes.index);
 
 module.exports =  app;
 module.exports.ui = appUI;
+
+// fake routes for recheck_url tests
+app.get('/recheck_url_correct', function(req, res) {
+  res.send("ok");
+});
+
+app.get('/recheck_url_error', function(req, res) {
+  res.send("error");
+});
+
+app.get('/recheck_url_404', function(req, res) {
+  res.send('what???', 404);
+});

@@ -33,10 +33,15 @@ var Logger = function() {
 Logger.prototype = new Log('debug', stream)
 
 Logger.prototype.debug = function(msg) {
+  //do not print debug logs in production
+  if (!this.isProd())
+    Log.prototype.debug.call(this, msg); 
+}
+
+Logger.prototype.spec = function(msg) {
   if (this.isTest()) {
     settings.redis.lpush(testKey, msg);
   }  
-  Log.prototype.debug.call(this, msg); 
 }
 
 module.exports = new Logger();
