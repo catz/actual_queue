@@ -36,30 +36,40 @@ UrlSender.prototype.send_remote = function(url_parts, event_id, uid, type) {
 UrlSender.prototype.send = function(event_id, event_data) {
   try {
     var self = this;
-    var url_parts = url.parse(event_data.url, true);
+    var url_data = event_data.url;
+    var url_parts = url.parse(url_data, true);
     var uid = event_data.uid;
     var type = event_data.type;
+    var recheck_url = event_data.recheck_url;
 
-    if(event_data.recheck_url) {
-      var recheck_url_parts = url.parse(event_data.recheck_url, true);
-      logger.debug('recheck_url found: ' + event_data.recheck_url);
+    if(recheck_url) {
+      if (recheck_url.lastIndexOf("http://", 0) != 0) {
+        recheck_url = "http://" + recheck_url
+      }
+
+      var recheck_url_parts = url.parse(recheck_url, true);
+      logger.debug('recheck_url found: ' + recheck_url);
 
       var recheck_request = http.request(recheck_url_parts, function(response) {        
+        logger.debug("Response code " + response.statusCode.toString());
         if (response.statusCode != 200) {          
-          logger.error('recheck url '+ event_data.recheck_url + 'returns code ' + response.statusCode);          
+          logger.error('recheck url '+ recheck_url + 'returns code ' + response.statusCode);
         };
 
         response.on('data', function (chunk) {
           if(chunk && (chunk.toString().toLowerCase() == 'ok')) {
+            logger.debug("Sending " + url_data.toString());
             self.send_remote(url_parts, event_id, uid, type);
             self.emit("event-recheck-sent", event_id, uid);             
           } else {
+            logger.debug("Error sending " + url_data.toString());
             self.emit("event-recheck-sent-error", event_id);
           }
         });
       });
 
       recheck_request.on('error', function(err) {
+        logger.debug("Error during getting recheck url " + recheck_url);
         logger.error(err);
         self.emit("event-recheck-sent-error", event_id);
       })
@@ -69,7 +79,7 @@ UrlSender.prototype.send = function(event_id, event_data) {
     }
 
   } catch (e) {
-    logger.error(e);
+    logger.error(e.stack);
     self.emit("event-sent-error", event_id);
   }
 }

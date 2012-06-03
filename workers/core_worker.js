@@ -75,6 +75,7 @@ Worker.prototype.restore = function(fn) {
         //do not get online events
         self.client.hmget(event_id, "data", function(err, reply) {
           if (reply) {
+            try {
             if (JSON.parse(reply).send_than_online !== "true") {
               // check event in events queue
               self.client.zrank(self.queue_key, event_id, function(err, reply) {
@@ -90,6 +91,9 @@ Worker.prototype.restore = function(fn) {
             }  else {
               logger.info("online event skipped within restore")
             } 
+            } catch(e) {
+              logger.info("error restoring event " + event_id);
+            }
           }
         });
       });
@@ -140,7 +144,8 @@ Worker.prototype.process = function() {
               if(!reply || (Date.now() - last_poll) > settings.USER_POLL_THRESHOLD) {
                 self.emit('event-data', event_id, data);      
               } else {
-                logger.debug("skipping user: " + uid);
+                logger.debug("skipping user: " + uid + " removing " + event_id);
+                self.client.del(event_id);
                 logger.spec('user-skipped'); //only test env
               }
             })  

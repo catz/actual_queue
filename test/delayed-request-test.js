@@ -5,7 +5,7 @@
  *
  * run npm start
  *
- * run vows --spec test/cluster-delayed-test.js
+ * run vows --spec test/delayed-request-test.js
  *
  */
 
